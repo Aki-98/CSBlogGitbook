@@ -5,9 +5,9 @@
     "page": {
         "title": "CS Blog"
     },
-    "author": "leah",
+    "author": "aki",
     "variables": {
-        "authorName": "leah"
+        "authorName": "aki"
     },
     "plugins": [
         "accordion",
@@ -17,7 +17,7 @@
     ],
     "pluginsConfig": {
         "tbfed-pagefooter": {
-            "copyright": "Copyright &copy Leah 2024",
+            "copyright": "Copyright &copy Aki 2024",
             "modify_label": "modified time:",
             "modift_format": "YYYY-MM-DD HH:mm:ss"
         }
