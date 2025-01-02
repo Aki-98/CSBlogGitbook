@@ -1,48 +1,92 @@
-这里所有提到的python程序都是自己写的，因为只考虑了自己的需求，没有考虑到其他情况，所以要拷贝使用的话还是根据自己的情况改下比较好
+**笔记仓库转Gitbook的好处：**
 
-> 代码位置：https://github.com/Leah-98/Python-Automation/tree/main/Gitbook
-
-
-
-将自己的笔记处理成Gitbook最大的好处是可以全局搜索
+- 全局搜索文本
+- 树状图结构浏览笔记
 
 
 
 # 第一步 准备md笔记仓库
 
+下面所有操作已经写成了自动化cli工具，可以直接在cmd下运行
+
+> 代码位置：https://github.com/Aki-98/Pre-Gitbook-Cli
+
 
 
 **1.将所有文件处理成md，或引用到md文件中**
 
-gitbook是只能够渲染markdown页面的。
+Gitbook是只能够渲染markdown页面的。
 
-我之前的笔记里，有一部分比较古早的笔记来自evernote、有道云的导出，是网页格式。网页格式我就转成PDF了，引用写在除了根目录的README.md文件夹下（append_other_files_to_readme.py）。
+那有些PDF文件，txt文件，或者源码，也希望在Gitbook网页中可以看到，怎么做呢？
 
-还有些零零散散的txt笔记，就直接将后缀改成md了（txt_to_md.py）
+对于txt文件，可以直接转换成md格式。
 
-
-
-**2.将md引用的图片放置在md文件的同级目录的子文件夹下，子文件夹命名为md文件的名字_imgs**
-
-之前的笔记引用图片比较混乱，有的是网络图片，有的是typora帮我写了绝对路径，但是在各个电脑上操作同一个笔记仓库，绝对路径不一致，有的以相对路径放在imgs文件夹下，但imgs文件夹在笔记仓库的各个位置，也比较乱。
-
-还是用python程序处理，统一放置到md文件的同级目录的子文件夹下，子文件夹命名为md文件的名字_imgs，md里的图片引用重写为相对路径（reformat_imgs.py）
-
-另外我自己的书摘很多时候是直接拍的实体书，手机照片太大了，需要压缩下（compress_pictures.py）
+对于PDF文件和源码，可以以引用方式写在md文件中。
 
 
 
-**3.生成SUMMARY.md**
+**2.规整图片**
+在md文件中引用网络图片，在生成的Gitbook网页中也是能够看到的，但网络图片可能失效，如果担心这点的话，可以下载保存到仓库中。
 
-将所有的md文件按文件路径写好SUMMARY.md，如果是子文件夹且没有README.md，则自己创建一个（generate_summary.py）
+在各个电脑上操作同一个笔记仓库，可能导致图片引用的绝对路径不一致，导致Gitbook也渲染不到图片的问题，如果有这种情况，需要重写绝对路径或改成相对路径。
 
-比gitbook init会好用一些，gitbook init生成文件有各种bug，且没办法根据所有md文件生成summary
-
-
-
+如果笔记是拍摄的实体书，图片会过大，如果移动仓库内图片的位置，.git文件也会增加不必要的体积，为此可以压缩图片，对于书籍来说不会丢失多少有效数据。
 
 
-# 第二步 准备Gitbook搭建环境
+
+**3.准备SUMMARY.md**
+
+SUMMARY.md是Gitbook右侧的树状导航。
+
+gitbook init 可以生成SUMMARY.md，但有各种bug，且没办法根据所有md文件生成summary
+
+
+
+**4.准备book.json**
+
+book.json用于配置Gitbook网页的标题、版权、插件（全局搜索器）等
+
+下面是我的配置，可以参考下
+
+https://github.com/Aki-98/CSBlogGitbook/blob/main/book.json
+
+配置详解：
+
+```
+{
+    "root": "/",
+    "gitbook": "3.2.3",
+    "title": "CS Blog", // 网页标题
+    "page": {
+        "title": "CS Blog" // 网页标题
+    },
+    "author": "aki", // 作者
+    "variables": {
+        "authorName": "aki" // 作者
+    },
+    "plugins": [
+        "accordion", // 一个插件，用于折叠内容或创建可展开的段落（手风琴效果）
+        "search-pro", // 一个改进的全局搜索插件，提供更强大的搜索功能。
+        "-search", // 表示禁用默认的搜索插件（GitBook 自带的 search 插件）
+        "tbfed-pagefooter" // 一个用于页面底部添加版权声明和修改时间的插件
+    ],
+    "pluginsConfig": {
+        "tbfed-pagefooter": { // 每个文件底部加上
+            "copyright": "Copyright &copy Aki 2024", // 版权声明
+            "modify_label": "modified time:", 
+            "modift_format": "YYYY-MM-DD HH:mm:ss" // 修改时间格式
+        }
+    }
+}
+```
+
+
+
+# 第二步 准备本地Gitbook搭建环境
+
+*也可部署Gitbook Cicd跳过此步
+
+
 
 直接看的网络上的教程，踩了一堆坑。
 
@@ -194,6 +238,10 @@ http://localhost:4000/
 
 # 第三步 搭建.io在线网站
 
+*也可部署Gitbook Cicd跳过此步
+
+
+
 有很多解决方案，我选择直接在Github上传静态网站。
 
 
@@ -227,4 +275,83 @@ https://githubusername.github.io/reponame/subfoldername1
 https://githubusername.github.io/reponame/subfoldername2
 ```
 
+
+
+# 第四步 Gitbook CICD
+
+可以直接复制下面的文件到自己的笔记仓库
+
+https://github.com/Aki-98/CSBlogGitbook/blob/main/.github/workflows/deploy.yml
+
+如果你的笔记仓库分支不是main, 上面yml中第一部分触发条件需要重写
+
+```
+on:  push:    branches: {your_branch}
+```
+
+注意放置路径也需要是/.github/workflows/deploy.yml
+
+在个人账户的Settings>Developer Settings>Personal access tokens>Fine-grained tokens>Generate New Token
+
+权限我是直接放到最大的，不清楚最低权限怎么配置，各位需要可以自己调查下
+
+点击自己笔记仓库的Settings > Secrets and variables > Actions 创建PERSONAL_TOKEN, 将上面生成的token复制过来
+
+之后每次push，都会自动生成Gitbook网页并发布到笔记仓库的gh-pages分支
+
+通过下面的链接格式就可以访问到网页了
+
+```
+https://{your_github_name}.github.io/{repo_name}
+```
+
+
+
+下面是deploy.yml的详解，谁能想到写个这么简单的yml也踩了一堆坑...
+
+```
+# CICD 任务的名称
+name: Deploy GitBook
+
+# 定义了触发条件：当用户push到本仓库的main分支时
+on:
+  push:
+    branches:
+      - main
+
+# CICD任务
+jobs:
+  deploy:
+    # 运行CICD任务的平台：最新版Ubuntu
+    runs-on: ubuntu-latest
+    steps:
+      # 检出笔记仓库分支
+      - name: Checkout code
+        uses: actions/checkout@v3
+      # 准备Node.js 12的环境, 为了兼容Gitbook选择了一个比较低的版本
+      - name: Setup Node.js 12
+        uses: actions/setup-node@v3
+        with:
+          node-version: '12'
+	  # 先行安装graceful-fs, 不然会报错, 详见第二步
+      - name: Install Latest graceful-fs
+        run: npm install graceful-fs@4.2.0 -g
+      # 安装Gitbook Cli工具
+      - name: Install GitBook CLI
+        run: npm install gitbook-cli@2.1.2 -g
+      # 利用Gitbook Cli工具安装gitbook
+      - name: Install GitBook
+        run: gitbook install
+      # 根据笔记渲染生成Gitbook网页
+      - name: Build GitBook
+        run: gitbook build
+      # 利用peaceiris/action-gh-pages发布Gitbook网页到当前仓库的ph-pages分支中
+      # action-gh-pages更多使用方式可见: https://github.com/peaceiris/actions-gh-pages
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          personal_token: ${{ secrets.PERSONAL_TOKEN }} # 使用本仓库的PERSONAL_TOKEN
+          publish_dir: ./_book # 使用_book目录下的文件
+          publish_branch: gh-pages # 发布到gh-pages分支
+```
 

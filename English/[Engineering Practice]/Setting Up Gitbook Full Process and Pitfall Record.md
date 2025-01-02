@@ -1,38 +1,81 @@
-Here is the translation of the provided text into English:
+**Benefits of Converting a Notes Repository to GitBook:**
+
+- Global text search.
+- Tree-structured navigation for browsing notes.
 
 ------
 
-All Python programs mentioned here are written by myself. Since I only considered my own needs and didn't think about other situations, it would be better to modify them according to your own situation if you want to copy and use them.
+# **Step 1: Prepare the Markdown Notes Repository**
 
-> Code location: https://github.com/Leah-98/Python-Automation/tree/main/Gitbook
+All the following steps have been automated into a CLI tool, which you can directly run in the command line.
 
-The biggest advantage of processing your notes into Gitbook is the ability to search globally.
+> Code location: https://github.com/Aki-98/Pre-Gitbook-Cli
 
-# Step 1: Prepare the MD Note Repository
+------
 
-**1. Convert all files to MD or reference them in MD files**
+**1. Convert all files to Markdown or reference them in Markdown**
 
-Gitbook can only render Markdown pages.
+GitBook can only render Markdown (.md) pages.
 
-Some of my old notes were exported from Evernote and Youdao Cloud, which were in web format. I converted the web format to PDF and referenced it in the README.md folder (append_other_files_to_readme.py).
+If you have PDF files, text files, or source code that you want to display on the GitBook website, here’s how:
 
-There are also some scattered TXT notes, which I directly changed the suffix to MD (txt_to_md.py).
+- **For text files (txt)**: Convert them directly to Markdown format.
+- **For PDF files and source code**: Use references to include them in Markdown files.
 
-**2. Place the images referenced in MD in a subfolder at the same level as the MD file, and name the subfolder after the MD file with "_imgs" appended**
+**2. Organize Images**
 
-The image references in the previous notes were messy. Some were web images, and some were absolute paths written by Typora. When operating on the same note repository on different computers, the absolute paths were inconsistent. Some were placed in the "imgs" folder with relative paths, but the "imgs" folder was located in various positions within the note repository, making it messy.
+- You can reference online images in your Markdown files, and they will be displayed on the GitBook website. However, online images might become inaccessible over time. If this is a concern, download and save the images to the repository.
+- If multiple computers access the same notes repository, image references with absolute paths might differ, causing GitBook to fail in rendering the images. In this case, rewrite the absolute paths or use relative paths instead.
+- If your notes contain photos of physical books, these images may be large. Moving such images within the repository can unnecessarily increase the size of the `.git` file. To address this, compress the images to reduce size without significant data loss.
 
-I used a Python program to unify and place them in a subfolder at the same level as the MD file, naming the subfolder after the MD file with "_imgs" appended, and rewriting the image references in MD to relative paths (reformat_imgs.py).
+**3. Prepare `SUMMARY.md`**
 
-Also, many of my book excerpts are directly taken from physical books. The phone photos are too large and need to be compressed (compress_pictures.py).
+The `SUMMARY.md` file is used for the tree-structured navigation on the right-hand side of GitBook.
 
-**3. Generate SUMMARY.md**
+While the `gitbook init` command can generate a `SUMMARY.md`, it often comes with various bugs and cannot generate a complete summary based on all Markdown files.
 
-Arrange all MD files and write them in SUMMARY.md. If it's a subfolder and doesn't have README.md, create one yourself (generate_summary.py).
+**4. Prepare `book.json`**
 
-This is better than gitbook init, which has various bugs and cannot generate a summary based on all MD files.
+The `book.json` file is used to configure the GitBook website, including the title, copyright information, and plugins (e.g., global search).
+
+Here’s my configuration for reference:
+https://github.com/Aki-98/CSBlogGitbook/blob/main/book.json
+
+**Configuration Explanation:**
+
+```json
+{
+    "root": "/", 
+    "gitbook": "3.2.3", 
+    "title": "CS Blog", // Website title
+    "page": {
+        "title": "CS Blog" // Website title
+    },
+    "author": "aki", // Author
+    "variables": {
+        "authorName": "aki" // Author name
+    },
+    "plugins": [
+        "accordion", // A plugin for collapsible content or expandable sections (accordion effect)
+        "search-pro", // An improved global search plugin providing more powerful search functionality
+        "-search", // Disables the default search plugin (GitBook's built-in search)
+        "tbfed-pagefooter" // A plugin for adding copyright statements and modification time to the page footer
+    ],
+    "pluginsConfig": {
+        "tbfed-pagefooter": { // Adds content to the footer of each file
+            "copyright": "Copyright &copy Aki 2024", // Copyright statement
+            "modify_label": "modified time:", 
+            "modift_format": "YYYY-MM-DD HH:mm:ss" // Format for the modification time
+        }
+    }
+}
+```
 
 # Step 2: Prepare the Gitbook Setup Environment
+
+*Alternatively, you can deploy GitBook via CI/CD to skip this step.*
+
+
 
 I followed some online tutorials and encountered many issues.
 
@@ -168,7 +211,13 @@ Open the local port in the browser to view the page:
 http://localhost:4000/
 ```
 
+
+
 # Step 3: Set up .io online website
+
+*Alternatively, you can deploy GitBook via CI/CD to skip this step.*
+
+
 
 There are many solutions; I chose to directly upload the static website to Github.
 
@@ -199,3 +248,93 @@ https://githubusername.github.io/reponame/subfoldername1
 https://githubusername.github.io/reponame/subfoldername2
 ```
 
+
+
+# **Step 4: GitBook CI/CD**
+
+You can directly copy the following file into your notes repository:
+
+https://github.com/Aki-98/CSBlogGitbook/blob/main/.github/workflows/deploy.yml
+
+If the branch of your notes repository is not `main`, you need to rewrite the triggering condition in the first part of the `.yml` file:
+
+```yaml
+on:
+  push:
+    branches: 
+      - {your_branch}
+```
+
+Make sure the file is placed in the correct path:
+`/.github/workflows/deploy.yml`
+
+Go to **Settings > Developer Settings > Personal access tokens > Fine-grained tokens > Generate New Token** in your GitHub personal account.
+
+For permissions, I set them to the maximum since I am unsure about the minimum required permissions. Feel free to investigate and configure as needed.
+
+Next, navigate to your notes repository's **Settings > Secrets and variables > Actions**, and create a secret named `PERSONAL_TOKEN`. Copy the token you generated earlier into this field.
+
+Now, every time you push to the repository, a GitBook webpage will be automatically generated and published to the `gh-pages` branch of your repository.
+
+You can access the webpage using the following URL format:
+
+```
+https://{your_github_name}.github.io/{repo_name}
+```
+
+**Detailed Explanation of `deploy.yml`**
+
+Who would’ve thought writing such a simple YAML file could involve so many pitfalls...
+
+```yaml
+# Name of the CI/CD task
+name: Deploy GitBook
+
+# Trigger condition: When a user pushes to the `main` branch of this repository
+on:
+  push:
+    branches:
+      - main
+
+# CI/CD jobs
+jobs:
+  deploy:
+    # Platform for running the CI/CD task: Latest version of Ubuntu
+    runs-on: ubuntu-latest
+    steps:
+      # Step 1: Check out the branch of the notes repository
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Set up a Node.js 12 environment. A lower version is chosen for GitBook compatibility.
+      - name: Setup Node.js 12
+        uses: actions/setup-node@v3
+        with:
+          node-version: '12'
+
+      # Step 3: Install `graceful-fs` in advance to avoid errors (refer to Step 2 for details)
+      - name: Install Latest graceful-fs
+        run: npm install graceful-fs@4.2.0 -g
+
+      # Step 4: Install the GitBook CLI tool
+      - name: Install GitBook CLI
+        run: npm install gitbook-cli@2.1.2 -g
+
+      # Step 5: Install GitBook using the CLI tool
+      - name: Install GitBook
+        run: gitbook install
+
+      # Step 6: Render and generate the GitBook webpage based on the notes
+      - name: Build GitBook
+        run: gitbook build
+
+      # Step 7: Deploy the GitBook webpage to the `gh-pages` branch of the repository
+      # Uses the `peaceiris/actions-gh-pages` GitHub Action. For more usage details, refer to:
+      # https://github.com/peaceiris/actions-gh-pages
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          personal_token: ${{ secrets.PERSONAL_TOKEN }} # Use the `PERSONAL_TOKEN` from this repository
+          publish_dir: ./_book # Use the files from the `_book` directory
+          publish_branch: gh-pages # Publish to the `gh-pages` branch
+```
